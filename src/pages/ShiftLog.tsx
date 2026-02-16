@@ -6,6 +6,7 @@ import { Input } from '../components/Input';
 import { Shift } from '../types';
 import { formatDuration, calculateDuration, getDayName, getMonthName, getMonthRange, isDateInRange } from '../utils/dateHelpers';
 import { exportToCSV, copyToClipboard } from '../utils/exportHelpers';
+import { calculateMonthlySummary } from '../utils/salaryCalculations';
 import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy } from 'lucide-react';
 
 export function ShiftLog() {
@@ -14,8 +15,8 @@ export function ShiftLog() {
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '17:00',
+    startTime: '07:00',
+    endTime: '16:00',
     isHoliday: false,
     notes: '',
   });
@@ -28,6 +29,13 @@ export function ShiftLog() {
   const totalHours = monthShifts.reduce(
     (sum, shift) => sum + calculateDuration(shift.date, shift.startTime, shift.endTime),
     0
+  );
+
+  const summary = calculateMonthlySummary(
+    shifts,
+    settings,
+    currentMonth.year,
+    currentMonth.month
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,8 +53,8 @@ export function ShiftLog() {
     setShowAddModal(false);
     setFormData({
       date: new Date().toISOString().split('T')[0],
-      startTime: '09:00',
-      endTime: '17:00',
+      startTime: '07:00',
+      endTime: '16:00',
       isHoliday: false,
       notes: '',
     });
@@ -112,11 +120,12 @@ export function ShiftLog() {
       <div className="px-4 pt-4">
         <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
           {/* Table Header */}
-          <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-300">
+          <div className="grid grid-cols-5 bg-gray-100 border-b border-gray-300">
             <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">יום</div>
             <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">התחלה</div>
             <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">סיום</div>
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700">שעות</div>
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">שעות</div>
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700">הערות</div>
           </div>
 
           {/* Table Body */}
@@ -133,7 +142,7 @@ export function ShiftLog() {
               return (
                 <div
                   key={shift.id}
-                  className="grid grid-cols-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer relative"
+                  className="grid grid-cols-5 border-b border-gray-200 hover:bg-gray-50 cursor-pointer relative"
                   onClick={() => handleEdit(shift)}
                 >
                   <div className="px-3 py-3 text-sm border-l border-gray-200">
@@ -144,14 +153,17 @@ export function ShiftLog() {
                   </div>
                   <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.startTime}</div>
                   <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.endTime}</div>
-                  <div className="px-3 py-3 text-sm font-semibold flex items-center justify-between">
-                    <span>{formatDuration(duration)}</span>
+                  <div className="px-3 py-3 text-sm font-semibold border-l border-gray-200">
+                    {formatDuration(duration)}
+                  </div>
+                  <div className="px-3 py-3 text-sm flex items-center justify-between">
+                    <span className="text-gray-600 truncate">{shift.notes || '-'}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(shift.id);
                       }}
-                      className="text-red-500 hover:text-red-700 p-1"
+                      className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -169,6 +181,101 @@ export function ShiftLog() {
             <span className="text-lg font-bold text-blue-600">{formatDuration(totalHours)}</span>
           </div>
         </div>
+
+        {/* Monthly Summary */}
+        {monthShifts.length > 0 && (
+          <div className="mt-4 bg-white border border-gray-300 rounded-lg overflow-hidden">
+            <div className="bg-gray-100 px-4 py-3 border-b border-gray-300">
+              <h3 className="font-bold text-gray-800">פירוט חודשי</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              {/* Income Section */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-gray-700">הכנסות:</h4>
+                <div className="space-y-1 text-sm">
+                  {settings.salaryType === 'monthly' ? (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">שכר חודשי:</span>
+                      <span className="font-medium">₪{settings.monthlySalary.toFixed(2)}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">שעות רגילות:</span>
+                      <span className="font-medium">₪{summary.regularPay.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {summary.overtime125Pay > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">שעות נוספות 125%:</span>
+                      <span className="font-medium">₪{summary.overtime125Pay.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {summary.overtime150Pay > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">שעות נוספות 150%:</span>
+                      <span className="font-medium">₪{summary.overtime150Pay.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {summary.shabbatHolidayPay > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">שבת/חגים:</span>
+                      <span className="font-medium">₪{summary.shabbatHolidayPay.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {summary.travelPay > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">דמי נסיעות:</span>
+                      <span className="font-medium">₪{summary.travelPay.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-between pt-2 border-t border-gray-200">
+                  <span className="font-semibold text-gray-800">סה"כ ברוטו:</span>
+                  <span className="font-bold text-blue-600">₪{summary.grossTotal.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Deductions Section */}
+              {settings.calculateDeductions && (
+                <>
+                  <div className="space-y-2 pt-3 border-t border-gray-200">
+                    <h4 className="text-sm font-semibold text-gray-700">ניכויים:</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">ביטוח לאומי:</span>
+                        <span className="font-medium text-red-600">-₪{summary.socialSecurityDeduction.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">מס הכנסה:</span>
+                        <span className="font-medium text-red-600">-₪{summary.incomeTaxDeduction.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">פנסיה:</span>
+                        <span className="font-medium text-red-600">-₪{summary.pensionDeduction.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">קרן השתלמות:</span>
+                        <span className="font-medium text-red-600">-₪{summary.trainingFundDeduction.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-gray-200">
+                      <span className="font-semibold text-gray-800">סה"כ ניכויים:</span>
+                      <span className="font-bold text-red-600">-₪{summary.totalDeductions.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  {/* Net Pay */}
+                  <div className="pt-3 border-t-2 border-gray-300">
+                    <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
+                      <span className="text-lg font-bold text-gray-800">נטו לתשלום:</span>
+                      <span className="text-2xl font-bold text-green-600">₪{summary.netPay.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Export buttons */}
         <div className="mt-4 space-y-2">

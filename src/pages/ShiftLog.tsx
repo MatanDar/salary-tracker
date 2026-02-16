@@ -5,10 +5,11 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Shift } from '../types';
 import { formatDuration, calculateDuration, getDayName, getMonthName, getMonthRange, isDateInRange } from '../utils/dateHelpers';
-import { exportToCSV, copyToClipboard } from '../utils/exportHelpers';
+import { exportToCSV } from '../utils/exportHelpers';
+import { emailMonthlyCSV } from '../utils/emailExport';
 import { generatePayslipPDF } from '../utils/pdfExport';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy, Copy as Duplicate, FileText } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Mail, Copy as Duplicate, FileText } from 'lucide-react';
 
 export function ShiftLog() {
   const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth } = useApp();
@@ -341,10 +342,9 @@ export function ShiftLog() {
             <button
               onClick={async () => {
                 try {
-                  await copyToClipboard(monthShifts);
-                  alert('הועתק ללוח! עכשיו פתח גוגל שיטס והדבק (Ctrl+V)');
+                  await emailMonthlyCSV(monthShifts, getMonthName(currentMonth.month), currentMonth.year);
                 } catch (err) {
-                  alert('שגיאה בהעתקה');
+                  alert('שגיאה בשליחה');
                 }
               }}
               disabled={monthShifts.length === 0}
@@ -354,8 +354,8 @@ export function ShiftLog() {
                   : 'bg-blue-500 text-white hover:bg-blue-600'
               }`}
             >
-              <Copy size={16} />
-              <span>העתק ללוח</span>
+              <Mail size={16} />
+              <span>שלח במייל</span>
             </button>
             <button
               onClick={() => generatePayslipPDF(summary, settings, currentMonth.month, currentMonth.year)}
@@ -372,7 +372,7 @@ export function ShiftLog() {
           </div>
           {monthShifts.length > 0 ? (
             <p className="text-xs text-gray-500 mt-2">
-              💡 טיפ: לחץ "העתק ללוח", פתח גוגל שיטס, והדבק!
+              💡 טיפ: "שלח במייל" פותח את אפליקציית המייל שלך עם הקובץ מצורף (בנייד) או מוריד את הקובץ ופותח מייל (במחשב)
             </p>
           ) : (
             <p className="text-xs text-gray-500 mt-2">

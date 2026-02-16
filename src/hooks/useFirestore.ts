@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query, Timestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Shift, Settings } from '../types';
 

@@ -7,7 +7,6 @@ export function exportToCSV(shifts: Shift[], month: string, year: number): void 
 
   // Create CSV rows
   const rows = shifts.map(shift => {
-    const date = new Date(shift.date);
     const dayName = getDayName(shift.date);
     const duration = calculateDuration(shift.date, shift.startTime, shift.endTime);
 
@@ -48,7 +47,6 @@ export function copyToClipboard(shifts: Shift[]): Promise<void> {
   const header = ['תאריך', 'יום', 'התחלה', 'סיום', 'שעות', 'חג', 'הערות'].join('\t');
 
   const rows = shifts.map(shift => {
-    const date = new Date(shift.date);
     const dayName = getDayName(shift.date);
     const duration = calculateDuration(shift.date, shift.startTime, shift.endTime);
 

@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useTimer } from '../hooks/useTimer';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
 import { formatDuration, getMonthName } from '../utils/dateHelpers';
 import { Play, Square, ChevronLeft, ChevronRight, FileText } from 'lucide-react';

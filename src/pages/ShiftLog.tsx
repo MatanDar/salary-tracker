@@ -5,7 +5,8 @@ import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { Shift } from '../types';
 import { formatDuration, calculateDuration, getDayName, getMonthName, getMonthRange, isDateInRange } from '../utils/dateHelpers';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { exportToCSV, copyToClipboard } from '../utils/exportHelpers';
+import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy } from 'lucide-react';
 
 export function ShiftLog() {
   const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth } = useApp();
@@ -88,90 +89,133 @@ export function ShiftLog() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 px-4 pt-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">יומן משמרות</h1>
+    <div className="min-h-screen bg-white pb-20">
+      {/* Header with Month Navigator */}
+      <div className="bg-blue-500 text-white px-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <button onClick={handlePrevMonth} className="p-1 hover:bg-blue-600 rounded">
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="text-xl font-bold">
+            {getMonthName(currentMonth.month)} {currentMonth.year}
+          </h1>
+          <button onClick={handleNextMonth} className="p-1 hover:bg-blue-600 rounded">
+            <ChevronRight size={24} />
+          </button>
+        </div>
+        <div className="text-center text-sm">
+          <span>סה"כ: {formatDuration(totalHours)}</span>
+        </div>
       </div>
 
-      {/* Month Navigator */}
-      <Card className="mb-4">
-        <div className="flex items-center justify-between">
-          <Button variant="secondary" size="sm" onClick={handleNextMonth}>
-            <ChevronRight size={20} />
-          </Button>
-          <h2 className="text-lg font-semibold">
-            {getMonthName(currentMonth.month)} {currentMonth.year}
-          </h2>
-          <Button variant="secondary" size="sm" onClick={handlePrevMonth}>
-            <ChevronLeft size={20} />
-          </Button>
-        </div>
-      </Card>
+      {/* Table */}
+      <div className="px-4 pt-4">
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+          {/* Table Header */}
+          <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-300">
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">יום</div>
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">התחלה</div>
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">סיום</div>
+            <div className="px-3 py-2 text-sm font-semibold text-gray-700">שעות</div>
+          </div>
 
-      {/* Total Hours */}
-      <Card className="mb-4">
-        <div className="text-center">
-          <p className="text-sm text-gray-600">סה"כ שעות החודש</p>
-          <p className="text-2xl font-bold text-blue-600">{formatDuration(totalHours)}</p>
-        </div>
-      </Card>
+          {/* Table Body */}
+          {monthShifts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              לא נרשמו משמרות החודש
+            </div>
+          ) : (
+            monthShifts.map(shift => {
+              const duration = calculateDuration(shift.date, shift.startTime, shift.endTime);
+              const date = new Date(shift.date);
+              const dayName = getDayName(shift.date);
 
-      {/* Shifts List */}
-      <div className="space-y-3 mb-4">
-        {monthShifts.length === 0 ? (
-          <Card className="text-center py-8">
-            <p className="text-gray-500">לא נרשמו משמרות החודש</p>
-          </Card>
-        ) : (
-          monthShifts.map(shift => {
-            const duration = calculateDuration(shift.date, shift.startTime, shift.endTime);
-            const date = new Date(shift.date);
-            const dayName = getDayName(shift.date);
-
-            return (
-              <Card key={shift.id} className="relative">
+              return (
                 <div
-                  className="cursor-pointer"
+                  key={shift.id}
+                  className="grid grid-cols-4 border-b border-gray-200 hover:bg-gray-50 cursor-pointer relative"
                   onClick={() => handleEdit(shift)}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="font-semibold text-gray-800">
-                        {date.getDate()}/{date.getMonth() + 1} - {dayName}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {shift.startTime} - {shift.endTime}
-                      </p>
-                    </div>
-                    <div className="text-left">
-                      <p className="text-lg font-bold text-blue-600">
-                        {formatDuration(duration)}
-                      </p>
-                      {shift.isHoliday && (
-                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
-                          חג
-                        </span>
-                      )}
-                    </div>
+                  <div className="px-3 py-3 text-sm border-l border-gray-200">
+                    {date.getDate()}/{date.getMonth() + 1} {dayName}
+                    {shift.isHoliday && (
+                      <span className="mr-1 text-xs text-purple-600">⭐</span>
+                    )}
                   </div>
-                  {shift.notes && (
-                    <p className="text-sm text-gray-500 mt-1">{shift.notes}</p>
-                  )}
+                  <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.startTime}</div>
+                  <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.endTime}</div>
+                  <div className="px-3 py-3 text-sm font-semibold flex items-center justify-between">
+                    <span>{formatDuration(duration)}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(shift.id);
+                      }}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(shift.id);
-                  }}
-                  className="absolute bottom-3 left-3 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 size={18} />
-                </button>
-              </Card>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
+
+        {/* Total at bottom */}
+        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-semibold text-gray-700">סה"כ שעות החודש:</span>
+            <span className="text-lg font-bold text-blue-600">{formatDuration(totalHours)}</span>
+          </div>
+        </div>
+
+        {/* Export buttons */}
+        <div className="mt-4 space-y-2">
+          <p className="text-sm font-semibold text-gray-700 mb-2">ייצוא לגוגל שיטס:</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => exportToCSV(monthShifts, getMonthName(currentMonth.month), currentMonth.year)}
+              disabled={monthShifts.length === 0}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-colors text-sm ${
+                monthShifts.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-green-500 text-white hover:bg-green-600'
+              }`}
+            >
+              <Download size={16} />
+              <span>הורד CSV</span>
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await copyToClipboard(monthShifts);
+                  alert('הועתק ללוח! עכשיו פתח גוגל שיטס והדבק (Ctrl+V)');
+                } catch (err) {
+                  alert('שגיאה בהעתקה');
+                }
+              }}
+              disabled={monthShifts.length === 0}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-colors text-sm ${
+                monthShifts.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              <Copy size={16} />
+              <span>העתק ללוח</span>
+            </button>
+          </div>
+          {monthShifts.length > 0 ? (
+            <p className="text-xs text-gray-500 mt-2">
+              💡 טיפ: לחץ "העתק ללוח", פתח גוגל שיטס, והדבק!
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-2">
+              הוסף משמרות כדי להפעיל את הייצוא
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Add Button */}

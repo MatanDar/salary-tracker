@@ -17,6 +17,96 @@ body {
   background-color: #f5f5f5;
 }
 
+.dark body {
+  background-color: #1a202c;
+}
+
 #root {
   min-height: 100vh;
+}
+
+/* Dark Mode Global Styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark .bg-white {
+  background-color: #1a202c !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1a202c !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: #2d3748 !important;
+}
+
+.dark .bg-gray-200 {
+  background-color: #2d3748 !important;
+}
+
+.dark .text-gray-800 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-gray-700 {
+  color: #cbd5e0 !important;
+}
+
+.dark .text-gray-600 {
+  color: #a0aec0 !important;
+}
+
+.dark .text-gray-500 {
+  color: #718096 !important;
+}
+
+.dark .text-gray-900 {
+  color: #f7fafc !important;
+}
+
+.dark .border-gray-200 {
+  border-color: #4a5568 !important;
+}
+
+.dark .border-gray-300 {
+  border-color: #4a5568 !important;
+}
+
+/* Card styles in dark mode */
+.dark [class*="bg-white"],
+.dark [class*="shadow"] {
+  background-color: #2d3748 !important;
+}
+
+/* Input styles in dark mode */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1a202c !important;
+  border-color: #4a5568 !important;
+  color: #e2e8f0 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #718096 !important;
+}
+
+/* Button styles remain unchanged (keep blue colors) */
+/* Tables in dark mode */
+.dark table {
+  border-color: #4a5568 !important;
+}
+
+.dark th {
+  background-color: #2d3748 !important;
+  color: #e2e8f0 !important;
+  border-color: #4a5568 !important;
+}
+
+.dark td {
+  border-color: #4a5568 !important;
+  color: #cbd5e0 !important;
 }

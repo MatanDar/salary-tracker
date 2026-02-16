@@ -13,22 +13,65 @@ export function Settings() {
         <h1 className="text-2xl font-bold text-gray-800">הגדרות</h1>
       </div>
 
-      {/* Hourly Rate */}
+      {/* Salary Type */}
       <Card className="mb-4">
-        <h2 className="text-lg font-semibold mb-3">שכר שעתי</h2>
-        <Input
-          type="number"
-          step="0.01"
-          value={settings.hourlyRate}
-          onChange={(e) =>
-            updateSettings({ hourlyRate: parseFloat(e.target.value) || 0 })
-          }
-          placeholder="40"
-        />
-        <p className="text-sm text-gray-500 mt-2">
-          שכר לשעה רגילה (₪)
-        </p>
+        <h2 className="text-lg font-semibold mb-3">סוג שכר</h2>
+        <div className="space-y-3">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              checked={settings.salaryType === 'hourly'}
+              onChange={() => updateSettings({ salaryType: 'hourly' })}
+              className="w-4 h-4 text-blue-600"
+            />
+            <span className="text-sm text-gray-700">שכר שעתי</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              checked={settings.salaryType === 'monthly'}
+              onChange={() => updateSettings({ salaryType: 'monthly' })}
+              className="w-4 h-4 text-blue-600"
+            />
+            <span className="text-sm text-gray-700">שכר חודשי קבוע (ברוטו)</span>
+          </label>
+        </div>
       </Card>
+
+      {/* Hourly Rate or Monthly Salary */}
+      {settings.salaryType === 'hourly' ? (
+        <Card className="mb-4">
+          <h2 className="text-lg font-semibold mb-3">שכר שעתי</h2>
+          <Input
+            type="number"
+            step="0.01"
+            value={settings.hourlyRate}
+            onChange={(e) =>
+              updateSettings({ hourlyRate: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="40"
+          />
+          <p className="text-sm text-gray-500 mt-2">
+            שכר לשעה רגילה (₪)
+          </p>
+        </Card>
+      ) : (
+        <Card className="mb-4">
+          <h2 className="text-lg font-semibold mb-3">שכר חודשי (ברוטו)</h2>
+          <Input
+            type="number"
+            step="0.01"
+            value={settings.monthlySalary}
+            onChange={(e) =>
+              updateSettings({ monthlySalary: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="10000"
+          />
+          <p className="text-sm text-gray-500 mt-2">
+            שכר חודשי קבוע לפני ניכויים (₪)
+          </p>
+        </Card>
+      )}
 
       {/* Travel Pay */}
       <Card className="mb-4">
@@ -146,6 +189,134 @@ export function Settings() {
         </p>
       </Card>
 
+      {/* Deductions Section */}
+      <Card className="mb-4">
+        <h2 className="text-lg font-semibold mb-3">ניכויים וחישוב נטו</h2>
+        <div className="space-y-4">
+          <Toggle
+            checked={settings.calculateDeductions}
+            onChange={(calculateDeductions) => updateSettings({ calculateDeductions })}
+            label="חשב ניכויים (הצג נטו לתשלום)"
+          />
+
+          {settings.calculateDeductions && (
+            <div className="space-y-3 pt-2 border-t border-gray-200">
+              <p className="text-sm font-medium text-gray-700">ניכויי עובד (באחוזים):</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="ביטוח לאומי (%)"
+                  value={settings.deductions.socialSecurity}
+                  onChange={(e) =>
+                    updateSettings({
+                      deductions: {
+                        ...settings.deductions,
+                        socialSecurity: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="מס הכנסה (%)"
+                  value={settings.deductions.incomeTax}
+                  onChange={(e) =>
+                    updateSettings({
+                      deductions: {
+                        ...settings.deductions,
+                        incomeTax: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="פנסיה - עובד (%)"
+                  value={settings.deductions.pension}
+                  onChange={(e) =>
+                    updateSettings({
+                      deductions: {
+                        ...settings.deductions,
+                        pension: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="קרן השתלמות - עובד (%)"
+                  value={settings.deductions.trainingFund}
+                  onChange={(e) =>
+                    updateSettings({
+                      deductions: {
+                        ...settings.deductions,
+                        trainingFund: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <p className="text-sm font-medium text-gray-700 pt-3">הפרשות מעסיק (באחוזים):</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="פנסיה - מעסיק (%)"
+                  value={settings.employerContributions.pension}
+                  onChange={(e) =>
+                    updateSettings({
+                      employerContributions: {
+                        ...settings.employerContributions,
+                        pension: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="פיצויים (%)"
+                  value={settings.employerContributions.severance}
+                  onChange={(e) =>
+                    updateSettings({
+                      employerContributions: {
+                        ...settings.employerContributions,
+                        severance: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="קרן השתלמות - מעסיק (%)"
+                  value={settings.employerContributions.trainingFund}
+                  onChange={(e) =>
+                    updateSettings({
+                      employerContributions: {
+                        ...settings.employerContributions,
+                        trainingFund: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <p className="text-xs text-gray-500 mt-3">
+                * ניכויים אלו הם משוערים. לדיוק מלא, התייעץ עם מחלקת שכר
+              </p>
+            </div>
+          )}
+        </div>
+      </Card>
+
       {/* Dark Mode */}
       <Card className="mb-4">
         <h2 className="text-lg font-semibold mb-3">מצב כהה</h2>
@@ -155,7 +326,7 @@ export function Settings() {
           label="הפעל מצב כהה"
         />
         <p className="text-sm text-gray-500 mt-2">
-          בקרוב...
+          מעבר בין תצוגה בהירה וכהה לנוחות העיניים 🌙
         </p>
       </Card>
     </div>

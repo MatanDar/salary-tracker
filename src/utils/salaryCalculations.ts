@@ -73,7 +73,38 @@ export function calculateMonthlySummary(
     }
   }
 
-  const grossTotal = regularPay + overtime125Pay + overtime150Pay + shabbatHolidayPay + travelPay;
+  let grossTotal: number;
+
+  // If monthly salary - use fixed amount, otherwise calculate from hours
+  if (settings.salaryType === 'monthly') {
+    grossTotal = settings.monthlySalary + travelPay;
+  } else {
+    grossTotal = regularPay + overtime125Pay + overtime150Pay + shabbatHolidayPay + travelPay;
+  }
+
+  // Calculate deductions if enabled
+  let socialSecurityDeduction = 0;
+  let incomeTaxDeduction = 0;
+  let pensionDeduction = 0;
+  let trainingFundDeduction = 0;
+  let totalDeductions = 0;
+  let netPay = grossTotal;
+
+  if (settings.calculateDeductions) {
+    socialSecurityDeduction = (grossTotal * settings.deductions.socialSecurity) / 100;
+    incomeTaxDeduction = (grossTotal * settings.deductions.incomeTax) / 100;
+    pensionDeduction = (grossTotal * settings.deductions.pension) / 100;
+    trainingFundDeduction = (grossTotal * settings.deductions.trainingFund) / 100;
+
+    totalDeductions = socialSecurityDeduction + incomeTaxDeduction + pensionDeduction + trainingFundDeduction;
+    netPay = grossTotal - totalDeductions;
+  }
+
+  // Calculate employer contributions
+  const employerPension = (grossTotal * settings.employerContributions.pension) / 100;
+  const employerSeverance = (grossTotal * settings.employerContributions.severance) / 100;
+  const employerTrainingFund = (grossTotal * settings.employerContributions.trainingFund) / 100;
+  const totalEmployerCost = grossTotal + employerPension + employerSeverance + employerTrainingFund;
 
   return {
     totalHours,
@@ -84,5 +115,15 @@ export function calculateMonthlySummary(
     shabbatHolidayPay,
     travelPay,
     grossTotal,
+    socialSecurityDeduction,
+    incomeTaxDeduction,
+    pensionDeduction,
+    trainingFundDeduction,
+    totalDeductions,
+    netPay,
+    employerPension,
+    employerSeverance,
+    employerTrainingFund,
+    totalEmployerCost,
   };
 }

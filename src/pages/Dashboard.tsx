@@ -46,83 +46,90 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 px-4 pt-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">השכר שלי</h1>
-        <p className="text-gray-600">מעקב שעות עבודה ושכר</p>
-      </div>
-
-      {/* Month Navigator */}
-      <Card className="mb-4">
+    <div className="min-h-screen bg-white pb-20">
+      {/* Header with Month */}
+      <div className="bg-blue-500 text-white px-4 py-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <Button variant="secondary" size="sm" onClick={handleNextMonth}>
-            <ChevronRight size={20} />
-          </Button>
-          <h2 className="text-lg font-semibold">
-            {getMonthName(currentMonth.month)} {currentMonth.year}
-          </h2>
-          <Button variant="secondary" size="sm" onClick={handlePrevMonth}>
-            <ChevronLeft size={20} />
-          </Button>
-        </div>
-      </Card>
-
-      {/* Clock In/Out Button */}
-      <div className="mb-6 flex justify-center">
-        <button
-          onClick={handleClockToggle}
-          className={`w-48 h-48 rounded-full text-white text-xl font-bold shadow-lg transition-all duration-300 transform active:scale-95 ${
-            isActive
-              ? 'bg-red-500 hover:bg-red-600'
-              : 'bg-blue-500 hover:bg-blue-600'
-          }`}
-        >
-          <div className="flex flex-col items-center justify-center">
-            {isActive ? <Square size={32} /> : <Play size={32} />}
-            <span className="mt-2">{isActive ? 'יציאה ממשמרת' : 'כניסה למשמרת'}</span>
-            {isActive && (
-              <span className="text-sm mt-2 font-mono">{formattedTime}</span>
-            )}
-          </div>
-        </button>
-      </div>
-
-      {/* Monthly Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <Card>
+          <button onClick={handlePrevMonth} className="p-1 hover:bg-blue-600 rounded">
+            <ChevronLeft size={24} />
+          </button>
           <div className="text-center">
-            <p className="text-sm text-gray-600">סה"כ שעות</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {formatDuration(summary.totalHours)}
+            <h1 className="text-xl font-bold">השכר שלי</h1>
+            <p className="text-sm opacity-90">
+              {getMonthName(currentMonth.month)} {currentMonth.year}
             </p>
           </div>
-        </Card>
-        <Card>
-          <div className="text-center">
-            <p className="text-sm text-gray-600">משמרות</p>
-            <p className="text-2xl font-bold text-blue-600">{summary.shiftsCount}</p>
-          </div>
-        </Card>
+          <button onClick={handleNextMonth} className="p-1 hover:bg-blue-600 rounded">
+            <ChevronRight size={24} />
+          </button>
+        </div>
       </div>
 
-      <Card className="mb-4">
-        <div className="text-center">
-          <p className="text-sm text-gray-600 mb-1">משוער ברוטו</p>
-          <p className="text-3xl font-bold text-green-600">
-            ₪{summary.grossTotal.toFixed(2)}
-          </p>
+      <div className="px-4 pt-6">
+        {/* Clock In/Out Button */}
+        <div className="mb-6 flex justify-center">
+          <button
+            onClick={handleClockToggle}
+            className={`w-40 h-40 rounded-full text-white text-lg font-bold shadow-xl transition-all duration-300 transform active:scale-95 ${
+              isActive
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-blue-500 hover:bg-blue-600'
+            }`}
+          >
+            <div className="flex flex-col items-center justify-center">
+              {isActive ? <Square size={28} /> : <Play size={28} />}
+              <span className="mt-2 text-base">{isActive ? 'יציאה' : 'כניסה'}</span>
+              <span className="text-xs">{isActive ? 'ממשמרת' : 'למשמרת'}</span>
+              {isActive && (
+                <span className="text-sm mt-2 font-mono">{formattedTime}</span>
+              )}
+            </div>
+          </button>
         </div>
-      </Card>
 
-      {/* View Report Button */}
-      <Button
-        className="w-full flex items-center justify-center gap-2"
-        onClick={() => navigate('/report')}
-      >
-        <FileText size={20} />
-        <span>צפייה בדוח מפורט</span>
-      </Button>
+        {/* Summary Cards */}
+        <div className="space-y-3 mb-4">
+          <div className="bg-white border border-gray-300 rounded-lg p-4">
+            <div className="grid grid-cols-2 divide-x divide-gray-300">
+              <div className="text-center pl-3">
+                <p className="text-xs text-gray-600 mb-1">סה"כ שעות</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {formatDuration(summary.totalHours)}
+                </p>
+              </div>
+              <div className="text-center pr-3">
+                <p className="text-xs text-gray-600 mb-1">משמרות</p>
+                <p className="text-xl font-bold text-blue-600">{summary.shiftsCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="text-center">
+              <p className="text-xs text-gray-700 mb-1">
+                {settings.calculateDeductions ? 'נטו לתשלום' : 'משוער ברוטו'}
+              </p>
+              <p className="text-2xl font-bold text-green-700">
+                ₪{settings.calculateDeductions ? summary.netPay.toFixed(2) : summary.grossTotal.toFixed(2)}
+              </p>
+              {settings.calculateDeductions && (
+                <p className="text-xs text-gray-600 mt-1">
+                  ברוטו: ₪{summary.grossTotal.toFixed(2)}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* View Report Button */}
+        <button
+          onClick={() => navigate('/report')}
+          className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+        >
+          <FileText size={20} />
+          <span>צפייה בדוח מפורט</span>
+        </button>
+      </div>
     </div>
   );
 }

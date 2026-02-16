@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { BottomNav } from './components/BottomNav';
+import { DarkModeHandler } from './components/DarkModeHandler';
 import { Dashboard } from './pages/Dashboard';
 import { ShiftLog } from './pages/ShiftLog';
 import { Settings } from './pages/Settings';
@@ -10,6 +11,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppProvider>
+        <DarkModeHandler />
         <div className="app">
           <Routes>
             <Route path="/" element={<Dashboard />} />

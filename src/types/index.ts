@@ -17,8 +17,23 @@ export interface TravelPay {
   type: 'perDay' | 'monthly';
 }
 
+export interface Deductions {
+  socialSecurity: number; // ביטוח לאומי (%)
+  incomeTax: number; // מס הכנסה (%)
+  pension: number; // פנסיה - חלק עובד (%)
+  trainingFund: number; // קרן השתלמות - חלק עובד (%)
+}
+
+export interface EmployerContributions {
+  pension: number; // פנסיה - חלק מעסיק (%)
+  severance: number; // פיצויים (%)
+  trainingFund: number; // קרן השתלמות - חלק מעסיק (%)
+}
+
 export interface Settings {
+  salaryType: 'hourly' | 'monthly'; // שכר שעתי או חודשי
   hourlyRate: number;
+  monthlySalary: number; // שכר חודשי קבוע (ברוטו)
   travelPay: TravelPay;
   overtime: {
     enabled: boolean;
@@ -28,6 +43,9 @@ export interface Settings {
   };
   monthStartDay: number;
   darkMode: boolean;
+  deductions: Deductions;
+  employerContributions: EmployerContributions;
+  calculateDeductions: boolean; // האם לחשב ניכויים
 }
 
 export interface ShiftCalculation {
@@ -48,4 +66,24 @@ export interface MonthlySummary {
   shabbatHolidayPay: number;
   travelPay: number;
   grossTotal: number;
+  // Deductions
+  socialSecurityDeduction: number;
+  incomeTaxDeduction: number;
+  pensionDeduction: number;
+  trainingFundDeduction: number;
+  totalDeductions: number;
+  netPay: number; // נטו לתשלום
+  // Employer contributions
+  employerPension: number;
+  employerSeverance: number;
+  employerTrainingFund: number;
+  totalEmployerCost: number;
+}
+
+export interface Payslip {
+  id: string;
+  month: string; // YYYY-MM
+  imageUrl: string;
+  uploadDate: string;
+  notes?: string;
 }

@@ -11,6 +11,14 @@ export interface ActiveShift {
   startTime: string; // ISO timestamp
 }
 
+export interface ShiftTemplate {
+  id: string;
+  name: string; // שם התבנית (למשל: "משמרת בוקר", "משמרת ערב")
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  color: string; // hex color for visual distinction
+}
+
 export interface TravelPay {
   enabled: boolean;
   amount: number;
@@ -46,6 +54,7 @@ export interface Settings {
   deductions: Deductions;
   employerContributions: EmployerContributions;
   calculateDeductions: boolean; // האם לחשב ניכויים
+  shiftTemplates: ShiftTemplate[]; // תבניות משמרות
 }
 
 export interface ShiftCalculation {

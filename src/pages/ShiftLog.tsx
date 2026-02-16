@@ -7,7 +7,7 @@ import { Shift } from '../types';
 import { formatDuration, calculateDuration, getDayName, getMonthName, getMonthRange, isDateInRange } from '../utils/dateHelpers';
 import { exportToCSV, copyToClipboard } from '../utils/exportHelpers';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy, Copy as Duplicate } from 'lucide-react';
 
 export function ShiftLog() {
   const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth } = useApp();
@@ -96,6 +96,36 @@ export function ShiftLog() {
     }
   };
 
+  const handleTemplateSelect = (templateId: string) => {
+    const template = settings.shiftTemplates.find(t => t.id === templateId);
+    if (template) {
+      setFormData({
+        ...formData,
+        startTime: template.startTime,
+        endTime: template.endTime,
+      });
+    }
+  };
+
+  const handleDuplicate = (shift: Shift) => {
+    const newShift: Shift = {
+      id: crypto.randomUUID(),
+      date: new Date().toISOString().split('T')[0],
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      isHoliday: shift.isHoliday,
+      notes: shift.notes || '',
+    };
+    addShift(newShift);
+  };
+
+  const getShiftColor = (startTime: string) => {
+    const hour = parseInt(startTime.split(':')[0]);
+    if (hour >= 6 && hour < 14) return '#3b82f6'; // blue - morning
+    if (hour >= 14 && hour < 22) return '#f59e0b'; // amber - evening
+    return '#8b5cf6'; // purple - night
+  };
+
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* Header with Month Navigator */}
@@ -143,6 +173,7 @@ export function ShiftLog() {
                 <div
                   key={shift.id}
                   className="grid grid-cols-5 border-b border-gray-200 hover:bg-gray-50 cursor-pointer relative"
+                  style={{ borderRightWidth: '4px', borderRightColor: getShiftColor(shift.startTime) }}
                   onClick={() => handleEdit(shift)}
                 >
                   <div className="px-3 py-3 text-sm border-l border-gray-200">
@@ -156,17 +187,30 @@ export function ShiftLog() {
                   <div className="px-3 py-3 text-sm font-semibold border-l border-gray-200">
                     {formatDuration(duration)}
                   </div>
-                  <div className="px-3 py-3 text-sm flex items-center justify-between">
-                    <span className="text-gray-600 truncate">{shift.notes || '-'}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(shift.id);
-                      }}
-                      className="text-red-500 hover:text-red-700 p-1 flex-shrink-0"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <div className="px-3 py-3 text-sm flex items-center justify-between gap-2">
+                    <span className="text-gray-600 truncate flex-1">{shift.notes || '-'}</span>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicate(shift);
+                        }}
+                        className="text-blue-500 hover:text-blue-700 p-1"
+                        title="שכפל משמרת"
+                      >
+                        <Duplicate size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(shift.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1"
+                        title="מחק משמרת"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -360,6 +404,30 @@ export function ShiftLog() {
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 required
               />
+
+              {/* Quick Templates */}
+              {!editingShift && settings.shiftTemplates && settings.shiftTemplates.length > 0 && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">תבניות מהירות:</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {settings.shiftTemplates.map(template => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => handleTemplateSelect(template.id)}
+                        className="px-3 py-2 text-sm font-medium rounded-lg border-2 transition-all hover:scale-105"
+                        style={{
+                          borderColor: template.color,
+                          color: template.color,
+                          backgroundColor: `${template.color}10`
+                        }}
+                      >
+                        {template.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <Input

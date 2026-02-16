@@ -48,6 +48,29 @@ const defaultSettings: Settings = {
     severance: 6,
     trainingFund: 5,
   },
+  shiftTemplates: [
+    {
+      id: 'template-1',
+      name: 'משמרת בוקר',
+      startTime: '07:00',
+      endTime: '16:00',
+      color: '#3b82f6' // blue
+    },
+    {
+      id: 'template-2',
+      name: 'משמרת ערב',
+      startTime: '16:00',
+      endTime: '00:00',
+      color: '#f59e0b' // amber
+    },
+    {
+      id: 'template-3',
+      name: 'משמרת לילה',
+      startTime: '22:00',
+      endTime: '07:00',
+      color: '#8b5cf6' // purple
+    }
+  ],
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {

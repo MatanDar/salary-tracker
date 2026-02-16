@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useTimer } from '../hooks/useTimer';
+import { MonthlyChart } from '../components/MonthlyChart';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
 import { formatDuration, getMonthName } from '../utils/dateHelpers';
 import { Play, Square, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
@@ -101,22 +102,11 @@ export function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="text-center">
-              <p className="text-xs text-gray-700 mb-1">
-                {settings.calculateDeductions ? 'נטו לתשלום' : 'משוער ברוטו'}
-              </p>
-              <p className="text-2xl font-bold text-green-700">
-                ₪{settings.calculateDeductions ? summary.netPay.toFixed(2) : summary.grossTotal.toFixed(2)}
-              </p>
-              {settings.calculateDeductions && (
-                <p className="text-xs text-gray-600 mt-1">
-                  ברוטו: ₪{summary.grossTotal.toFixed(2)}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* Monthly Trend Chart */}
+        <div className="mb-4">
+          <MonthlyChart shifts={shifts} settings={settings} />
         </div>
 
         {/* View Report Button */}

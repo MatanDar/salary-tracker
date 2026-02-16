@@ -6,8 +6,9 @@ import { Input } from '../components/Input';
 import { Shift } from '../types';
 import { formatDuration, calculateDuration, getDayName, getMonthName, getMonthRange, isDateInRange } from '../utils/dateHelpers';
 import { exportToCSV, copyToClipboard } from '../utils/exportHelpers';
+import { generatePayslipPDF } from '../utils/pdfExport';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy, Copy as Duplicate } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Copy, Copy as Duplicate, FileText } from 'lucide-react';
 
 export function ShiftLog() {
   const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth } = useApp();
@@ -323,8 +324,8 @@ export function ShiftLog() {
 
         {/* Export buttons */}
         <div className="mt-4 space-y-2">
-          <p className="text-sm font-semibold text-gray-700 mb-2">ייצוא לגוגל שיטס:</p>
-          <div className="grid grid-cols-2 gap-2">
+          <p className="text-sm font-semibold text-gray-700 mb-2">ייצוא:</p>
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => exportToCSV(monthShifts, getMonthName(currentMonth.month), currentMonth.year)}
               disabled={monthShifts.length === 0}
@@ -355,6 +356,18 @@ export function ShiftLog() {
             >
               <Copy size={16} />
               <span>העתק ללוח</span>
+            </button>
+            <button
+              onClick={() => generatePayslipPDF(summary, settings, currentMonth.month, currentMonth.year)}
+              disabled={monthShifts.length === 0}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-lg transition-colors text-sm ${
+                monthShifts.length === 0
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-red-500 text-white hover:bg-red-600'
+              }`}
+            >
+              <FileText size={16} />
+              <span>תלוש PDF</span>
             </button>
           </div>
           {monthShifts.length > 0 ? (

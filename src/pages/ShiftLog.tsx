@@ -591,43 +591,45 @@ export function ShiftLog() {
 
               {/* Time fields - only for regular shifts */}
               {formData.shiftType === 'regular' && (
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  type="time"
-                  label="שעת התחלה"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                  required
-                />
-                <Input
-                  type="time"
-                  label="שעת סיום"
-                  value={formData.endTime === '--:--' ? '' : formData.endTime}
-                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  required={!editingShift?.inProgress}
-                />
-              </div>
-              {editingShift?.inProgress && (
-                <p className="text-xs text-green-600">
-                  💡 משמרת פעילה - שעת הסיום אופציונלית
-                </p>
-              )}
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    type="time"
+                    label="שעת התחלה"
+                    value={formData.startTime}
+                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                    required
+                  />
+                  <Input
+                    type="time"
+                    label="שעת סיום"
+                    value={formData.endTime === '--:--' ? '' : formData.endTime}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                    required={!editingShift?.inProgress}
+                  />
+                </div>
+                {editingShift?.inProgress && (
+                  <p className="text-xs text-green-600">
+                    💡 משמרת פעילה - שעת הסיום אופציונלית
+                  </p>
+                )}
+              </>
               )}
 
               {/* Holiday checkbox - only for regular shifts */}
               {formData.shiftType === 'regular' && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isHoliday"
-                  checked={formData.isHoliday}
-                  onChange={(e) => setFormData({ ...formData, isHoliday: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                />
-                <label htmlFor="isHoliday" className="text-sm text-gray-700">
-                  סמן כחג (תוספת 150%)
-                </label>
-              </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isHoliday"
+                    checked={formData.isHoliday}
+                    onChange={(e) => setFormData({ ...formData, isHoliday: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <label htmlFor="isHoliday" className="text-sm text-gray-700">
+                    סמן כחג (תוספת 150%)
+                  </label>
+                </div>
               )}
 
               <Input

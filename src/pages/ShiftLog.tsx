@@ -16,12 +16,20 @@ export function ShiftLog() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [liveElapsed, setLiveElapsed] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    date: string;
+    startTime: string;
+    endTime: string;
+    isHoliday: boolean;
+    notes: string;
+    shiftType?: 'regular' | 'vacation' | 'sick';
+  }>({
     date: new Date().toISOString().split('T')[0],
     startTime: '07:00',
     endTime: '16:00',
     isHoliday: false,
     notes: '',
+    shiftType: 'regular',
   });
 
   // Live timer for active shift
@@ -88,6 +96,7 @@ export function ShiftLog() {
       endTime: '16:00',
       isHoliday: false,
       notes: '',
+      shiftType: 'regular',
     });
   };
 
@@ -99,6 +108,7 @@ export function ShiftLog() {
       endTime: shift.endTime,
       isHoliday: shift.isHoliday,
       notes: shift.notes || '',
+      shiftType: shift.shiftType || 'regular',
     });
     setShowAddModal(true);
   };
@@ -146,6 +156,7 @@ export function ShiftLog() {
       endTime: shift.endTime,
       isHoliday: shift.isHoliday,
       notes: shift.notes || '',
+      shiftType: shift.shiftType,
     };
     addShift(newShift);
   };
@@ -197,15 +208,23 @@ export function ShiftLog() {
           ) : (
             monthShifts.map(shift => {
               const isActive = shift.inProgress === true;
+              const isVacation = shift.shiftType === 'vacation';
+              const isSick = shift.shiftType === 'sick';
               const duration = isActive ? 0 : calculateDuration(shift.date, shift.startTime, shift.endTime);
               const date = new Date(shift.date);
               const dayName = getDayName(shift.date);
+
+              // Determine row color based on shift type
+              let borderColor = getShiftColor(shift.startTime);
+              if (isActive) borderColor = '#48bb78'; // green for active
+              if (isVacation) borderColor = '#f59e0b'; // amber for vacation
+              if (isSick) borderColor = '#ef4444'; // red for sick
 
               return (
                 <div
                   key={shift.id}
                   className={`grid grid-cols-5 notebook-row cursor-pointer relative ${isActive ? 'active-shift-row' : ''}`}
-                  style={{ borderRightWidth: '4px', borderRightColor: isActive ? '#48bb78' : getShiftColor(shift.startTime) }}
+                  style={{ borderRightWidth: '4px', borderRightColor }}
                   onClick={() => handleEdit(shift)}
                 >
                   <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
@@ -214,19 +233,33 @@ export function ShiftLog() {
                       {shift.isHoliday && (
                         <span className="mr-1 text-xs text-purple-600">⭐</span>
                       )}
+                      {isVacation && (
+                        <span className="mr-1 text-xs">🏖️</span>
+                      )}
+                      {isSick && (
+                        <span className="mr-1 text-xs">🤒</span>
+                      )}
                     </span>
                   </div>
-                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">{shift.startTime}</div>
                   <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
-                    {isActive ? (
-                      <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
-                        <Clock size={14} />
-                        פעיל
-                      </span>
-                    ) : shift.endTime}
+                    {isVacation || isSick ? '-' : shift.startTime}
+                  </div>
+                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
+                    {isVacation || isSick ? '-' : (
+                      isActive ? (
+                        <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
+                          <Clock size={14} />
+                          פעיל
+                        </span>
+                      ) : shift.endTime
+                    )}
                   </div>
                   <div className="px-3 py-2 text-sm font-semibold border-l border-amber-200 text-amber-900 flex items-center">
-                    {isActive ? (
+                    {isVacation ? (
+                      <span className="text-amber-600">יום חופשה</span>
+                    ) : isSick ? (
+                      <span className="text-red-600">יום מחלה</span>
+                    ) : isActive ? (
                       <span className="active-shift-indicator text-green-600">{liveElapsed || '0:00'}</span>
                     ) : formatDuration(duration)}
                   </div>
@@ -325,6 +358,41 @@ export function ShiftLog() {
                   <span className="font-bold text-blue-600">₪{summary.grossTotal.toFixed(2)}</span>
                 </div>
               </div>
+
+              {/* Days Off Section */}
+              {(summary.vacationDaysUsed > 0 || summary.sickDaysUsed > 0 || (settings.vacationDaysBalance ?? 0) > 0 || (settings.sickDaysBalance ?? 0) > 0) && (
+                <div className="space-y-2 pt-3 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-700">ימי חופש ומחלה:</h4>
+                  <div className="space-y-1 text-sm">
+                    {((settings.vacationDaysBalance ?? 0) > 0 || summary.vacationDaysUsed > 0) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">חופשה:</span>
+                        <span className="font-medium">
+                          {summary.vacationDaysUsed > 0 && (
+                            <span className="text-orange-600">-{summary.vacationDaysUsed} | </span>
+                          )}
+                          <span className="text-blue-600">
+                            נותרו: {((settings.vacationDaysBalance ?? 0) - summary.vacationDaysUsed).toFixed(2)} ימים
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                    {((settings.sickDaysBalance ?? 0) > 0 || summary.sickDaysUsed > 0) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">מחלה:</span>
+                        <span className="font-medium">
+                          {summary.sickDaysUsed > 0 && (
+                            <span className="text-orange-600">-{summary.sickDaysUsed} | </span>
+                          )}
+                          <span className="text-blue-600">
+                            נותרו: {((settings.sickDaysBalance ?? 0) - summary.sickDaysUsed).toFixed(2)} ימים
+                          </span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Deductions Section */}
               {settings.calculateDeductions && (
@@ -463,8 +531,42 @@ export function ShiftLog() {
                 required
               />
 
-              {/* Quick Templates */}
-              {!editingShift && settings.shiftTemplates && settings.shiftTemplates.length > 0 && (
+              {/* Shift Type Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">סוג משמרת:</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={formData.shiftType === 'regular'}
+                      onChange={() => setFormData({ ...formData, shiftType: 'regular' })}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700">משמרת רגילה</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={formData.shiftType === 'vacation'}
+                      onChange={() => setFormData({ ...formData, shiftType: 'vacation' })}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700">יום חופשה 🏖️</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      checked={formData.shiftType === 'sick'}
+                      onChange={() => setFormData({ ...formData, shiftType: 'sick' })}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700">יום מחלה 🤒</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Quick Templates - only for regular shifts */}
+              {!editingShift && formData.shiftType === 'regular' && settings.shiftTemplates && settings.shiftTemplates.length > 0 && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">תבניות מהירות:</label>
                   <div className="grid grid-cols-3 gap-2">
@@ -487,6 +589,8 @@ export function ShiftLog() {
                 </div>
               )}
 
+              {/* Time fields - only for regular shifts */}
+              {formData.shiftType === 'regular' && (
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   type="time"
@@ -508,7 +612,10 @@ export function ShiftLog() {
                   💡 משמרת פעילה - שעת הסיום אופציונלית
                 </p>
               )}
+              )}
 
+              {/* Holiday checkbox - only for regular shifts */}
+              {formData.shiftType === 'regular' && (
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -521,6 +628,7 @@ export function ShiftLog() {
                   סמן כחג (תוספת 150%)
                 </label>
               </div>
+              )}
 
               <Input
                 type="text"

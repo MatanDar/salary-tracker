@@ -73,6 +73,55 @@ export function Settings() {
         </Card>
       )}
 
+      {/* Monthly Allowances - only for monthly salary */}
+      {settings.salaryType === 'monthly' && (
+        <Card className="mb-4">
+          <h2 className="text-lg font-semibold mb-3">תוספות חודשיות</h2>
+          <Input
+            type="number"
+            step="0.01"
+            value={settings.monthlyAllowances || 0}
+            onChange={(e) =>
+              updateSettings({ monthlyAllowances: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="0"
+          />
+          <p className="text-sm text-gray-500 mt-2">
+            תוספות קבועות (קיצוב, הרל, וכו') שמתווספות לברוטו החודשי (₪)
+          </p>
+        </Card>
+      )}
+
+      {/* Vacation and Sick Days Balance */}
+      <Card className="mb-4">
+        <h2 className="text-lg font-semibold mb-3">יתרות ימי חופש ומחלה</h2>
+        <div className="space-y-4">
+          <Input
+            type="number"
+            step="0.01"
+            label="יתרת ימי חופשה נוכחית"
+            value={settings.vacationDaysBalance || 0}
+            onChange={(e) =>
+              updateSettings({ vacationDaysBalance: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="0"
+          />
+          <Input
+            type="number"
+            step="0.01"
+            label="יתרת ימי מחלה נוכחית"
+            value={settings.sickDaysBalance || 0}
+            onChange={(e) =>
+              updateSettings({ sickDaysBalance: parseFloat(e.target.value) || 0 })
+            }
+            placeholder="0"
+          />
+          <p className="text-sm text-gray-500">
+            הזן את היתרה הנוכחית שלך כפי שמופיעה בתלוש השכר
+          </p>
+        </div>
+      </Card>
+
       {/* Travel Pay */}
       <Card className="mb-4">
         <h2 className="text-lg font-semibold mb-3">דמי נסיעות</h2>

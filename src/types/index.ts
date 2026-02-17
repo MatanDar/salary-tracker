@@ -6,6 +6,7 @@ export interface Shift {
   isHoliday: boolean;
   notes?: string;
   inProgress?: boolean; // true when shift is active (clocked in but not out yet)
+  shiftType?: 'regular' | 'vacation' | 'sick'; // סוג משמרת
 }
 
 export interface ActiveShift {
@@ -43,6 +44,7 @@ export interface Settings {
   salaryType: 'hourly' | 'monthly'; // שכר שעתי או חודשי
   hourlyRate: number;
   monthlySalary: number; // שכר חודשי קבוע (ברוטו)
+  monthlyAllowances?: number; // תוספות חודשיות (קיצוב, הרל, וכו')
   travelPay: TravelPay;
   overtime: {
     enabled: boolean;
@@ -56,6 +58,8 @@ export interface Settings {
   employerContributions: EmployerContributions;
   calculateDeductions: boolean; // האם לחשב ניכויים
   shiftTemplates: ShiftTemplate[]; // תבניות משמרות
+  vacationDaysBalance?: number; // יתרת ימי חופשה
+  sickDaysBalance?: number; // יתרת ימי מחלה
 }
 
 export interface ShiftCalculation {
@@ -88,6 +92,9 @@ export interface MonthlySummary {
   employerSeverance: number;
   employerTrainingFund: number;
   totalEmployerCost: number;
+  // Days off
+  vacationDaysUsed: number;
+  sickDaysUsed: number;
 }
 
 export interface Payslip {

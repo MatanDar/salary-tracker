@@ -23,6 +23,7 @@ const defaultSettings: Settings = {
   salaryType: 'hourly',
   hourlyRate: 40,
   monthlySalary: 10000,
+  monthlyAllowances: 0,
   travelPay: {
     enabled: false,
     amount: 22,
@@ -71,6 +72,8 @@ const defaultSettings: Settings = {
       color: '#8b5cf6' // purple
     }
   ],
+  vacationDaysBalance: 0,
+  sickDaysBalance: 0,
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {

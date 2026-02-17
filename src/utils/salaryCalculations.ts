@@ -50,8 +50,20 @@ export function calculateMonthlySummary(
   let overtime125Pay = 0;
   let overtime150Pay = 0;
   let shabbatHolidayPay = 0;
+  let vacationDaysUsed = 0;
+  let sickDaysUsed = 0;
 
   monthShifts.forEach(shift => {
+    // Count vacation/sick days
+    if (shift.shiftType === 'vacation') {
+      vacationDaysUsed += 1;
+      return;
+    }
+    if (shift.shiftType === 'sick') {
+      sickDaysUsed += 1;
+      return;
+    }
+
     const calc = calculateShift(shift, settings);
     totalHours += calc.totalHours;
 
@@ -80,7 +92,7 @@ export function calculateMonthlySummary(
 
   // If monthly salary - use fixed amount, otherwise calculate from hours
   if (settings.salaryType === 'monthly') {
-    grossTotal = settings.monthlySalary + travelPay;
+    grossTotal = settings.monthlySalary + (settings.monthlyAllowances || 0) + travelPay;
   } else {
     grossTotal = regularPay + overtime125Pay + overtime150Pay + shabbatHolidayPay + travelPay;
   }
@@ -128,5 +140,7 @@ export function calculateMonthlySummary(
     employerSeverance,
     employerTrainingFund,
     totalEmployerCost,
+    vacationDaysUsed,
+    sickDaysUsed,
   };
 }

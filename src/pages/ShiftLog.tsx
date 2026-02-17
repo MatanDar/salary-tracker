@@ -175,11 +175,11 @@ export function ShiftLog() {
         <div className="notebook-table border border-amber-300 rounded-lg overflow-hidden shadow-md">
           {/* Table Header */}
           <div className="grid grid-cols-5 notebook-header border-b-2 border-amber-400">
-            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">יום</div>
-            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">התחלה</div>
-            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">סיום</div>
-            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">שעות</div>
-            <div className="px-3 py-2 text-sm font-semibold text-amber-900">הערות</div>
+            <div className="px-3 py-3 text-sm font-semibold text-amber-900 border-l border-amber-300 flex items-center">יום</div>
+            <div className="px-3 py-3 text-sm font-semibold text-amber-900 border-l border-amber-300 flex items-center">התחלה</div>
+            <div className="px-3 py-3 text-sm font-semibold text-amber-900 border-l border-amber-300 flex items-center">סיום</div>
+            <div className="px-3 py-3 text-sm font-semibold text-amber-900 border-l border-amber-300 flex items-center">שעות</div>
+            <div className="px-3 py-3 text-sm font-semibold text-amber-900 flex items-center">הערות</div>
           </div>
 
           {/* Table Body */}
@@ -199,16 +199,18 @@ export function ShiftLog() {
                   key={shift.id}
                   className={`grid grid-cols-5 notebook-row cursor-pointer relative ${isActive ? 'active-shift-row' : ''}`}
                   style={{ borderRightWidth: '4px', borderRightColor: isActive ? '#48bb78' : getShiftColor(shift.startTime) }}
-                  onClick={() => !isActive && handleEdit(shift)}
+                  onClick={() => handleEdit(shift)}
                 >
-                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">
-                    {date.getDate()}/{date.getMonth() + 1} {dayName}
-                    {shift.isHoliday && (
-                      <span className="mr-1 text-xs text-purple-600">⭐</span>
-                    )}
+                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
+                    <span>
+                      {date.getDate()}/{date.getMonth() + 1} {dayName}
+                      {shift.isHoliday && (
+                        <span className="mr-1 text-xs text-purple-600">⭐</span>
+                      )}
+                    </span>
                   </div>
-                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">{shift.startTime}</div>
-                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">
+                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">{shift.startTime}</div>
+                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
                     {isActive ? (
                       <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
                         <Clock size={14} />
@@ -216,12 +218,12 @@ export function ShiftLog() {
                       </span>
                     ) : shift.endTime}
                   </div>
-                  <div className="px-3 py-3 text-sm font-semibold border-l border-amber-200 text-amber-900">
+                  <div className="px-3 py-2 text-sm font-semibold border-l border-amber-200 text-amber-900 flex items-center">
                     {isActive ? (
                       <span className="active-shift-indicator text-green-600">{liveElapsed || '0:00'}</span>
                     ) : formatDuration(duration)}
                   </div>
-                  <div className="px-3 py-3 text-sm flex items-center justify-between gap-2">
+                  <div className="px-3 py-2 text-sm flex items-center justify-between gap-2">
                     <span className="text-amber-700 truncate flex-1">{shift.notes || '-'}</span>
                     <div className="flex gap-1 flex-shrink-0">
                       {!isActive && (

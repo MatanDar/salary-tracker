@@ -40,7 +40,10 @@ export function calculateMonthlySummary(
 ): MonthlySummary {
   const { start, end } = getMonthRange(year, month, settings.monthStartDay);
 
-  const monthShifts = shifts.filter(shift => isDateInRange(shift.date, start, end));
+  // Filter out in-progress shifts (they don't have valid end times yet)
+  const monthShifts = shifts.filter(shift =>
+    isDateInRange(shift.date, start, end) && !shift.inProgress
+  );
 
   let totalHours = 0;
   let regularPay = 0;

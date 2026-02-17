@@ -64,13 +64,20 @@ export function ShiftLog() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // If editing an in-progress shift and no end time provided, keep it as --:--
+    const submitData = {
+      ...formData,
+      endTime: formData.endTime || (editingShift?.inProgress ? '--:--' : '16:00')
+    };
+
     if (editingShift) {
-      updateShift(editingShift.id, formData);
+      updateShift(editingShift.id, submitData);
       setEditingShift(null);
     } else {
       const newShift: Shift = {
         id: crypto.randomUUID(),
-        ...formData,
+        ...submitData,
       };
       addShift(newShift);
     }
@@ -491,11 +498,16 @@ export function ShiftLog() {
                 <Input
                   type="time"
                   label="שעת סיום"
-                  value={formData.endTime}
+                  value={formData.endTime === '--:--' ? '' : formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  required
+                  required={!editingShift?.inProgress}
                 />
               </div>
+              {editingShift?.inProgress && (
+                <p className="text-xs text-green-600">
+                  💡 משמרת פעילה - שעת הסיום אופציונלית
+                </p>
+              )}
 
               <div className="flex items-center gap-2">
                 <input

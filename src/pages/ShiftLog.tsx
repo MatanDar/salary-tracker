@@ -224,7 +224,7 @@ export function ShiftLog() {
                 <div
                   key={shift.id}
                   className={`grid grid-cols-5 notebook-row cursor-pointer relative ${isActive ? 'active-shift-row' : ''}`}
-                  style={{ borderRightWidth: '4px', borderRightColor }}
+                  style={{ borderRightWidth: '4px', borderRightColor: borderColor }}
                   onClick={() => handleEdit(shift)}
                 >
                   <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">

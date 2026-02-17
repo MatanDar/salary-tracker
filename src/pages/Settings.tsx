@@ -190,20 +190,73 @@ export function Settings() {
       {/* Overtime */}
       <Card className="mb-4">
         <h2 className="text-lg font-semibold mb-3">שעות נוספות</h2>
-        <Toggle
-          checked={settings.overtime.enabled}
-          onChange={(enabled) =>
-            updateSettings({ overtime: { enabled } })
-          }
-          label="חישוב אוטומטי לפי חוק"
-        />
-        {settings.overtime.enabled && (
-          <div className="mt-3 text-sm text-gray-600 space-y-1">
-            <p>• 8 שעות ראשונות: 100% (רגיל)</p>
-            <p>• שעות 8-10: 125%</p>
-            <p>• מעל 10 שעות: 150%</p>
-          </div>
-        )}
+        <div className="space-y-4">
+          <Toggle
+            checked={settings.overtime.enabled}
+            onChange={(enabled) =>
+              updateSettings({ overtime: { ...settings.overtime, enabled } })
+            }
+            label="הפעל שעות נוספות"
+          />
+
+          {settings.overtime.enabled && (
+            <>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">סוג חישוב:</p>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    checked={(settings.overtime.mode || 'automatic') === 'automatic'}
+                    onChange={() =>
+                      updateSettings({
+                        overtime: { ...settings.overtime, mode: 'automatic' },
+                      })
+                    }
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">חישוב אוטומטי לפי חוק</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    checked={settings.overtime.mode === 'manual'}
+                    onChange={() =>
+                      updateSettings({
+                        overtime: { ...settings.overtime, mode: 'manual' },
+                      })
+                    }
+                    className="w-4 h-4 text-blue-600"
+                  />
+                  <span className="text-sm text-gray-700">סכום קבוע (ידני)</span>
+                </label>
+              </div>
+
+              {(settings.overtime.mode || 'automatic') === 'automatic' ? (
+                <div className="mt-3 text-sm text-gray-600 space-y-1 bg-blue-50 p-3 rounded-lg">
+                  <p>• 8 שעות ראשונות: 100% (רגיל)</p>
+                  <p>• שעות 8-10: 125%</p>
+                  <p>• מעל 10 שעות: 150%</p>
+                </div>
+              ) : (
+                <Input
+                  type="number"
+                  step="0.01"
+                  label="סכום שעות נוספות חודשי (₪)"
+                  value={settings.overtime.manualAmount || 0}
+                  onChange={(e) =>
+                    updateSettings({
+                      overtime: {
+                        ...settings.overtime,
+                        manualAmount: parseFloat(e.target.value) || 0,
+                      },
+                    })
+                  }
+                  placeholder="0"
+                />
+              )}
+            </>
+          )}
+        </div>
       </Card>
 
       {/* Shabbat Premium */}

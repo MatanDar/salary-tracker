@@ -48,6 +48,8 @@ export interface Settings {
   travelPay: TravelPay;
   overtime: {
     enabled: boolean;
+    mode?: 'automatic' | 'manual'; // automatic = חישוב אוטומטי, manual = סכום ידני
+    manualAmount?: number; // סכום ידני לשעות נוספות (₪)
   };
   shabbatPremium: {
     enabled: boolean;

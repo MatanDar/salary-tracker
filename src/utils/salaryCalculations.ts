@@ -88,11 +88,22 @@ export function calculateMonthlySummary(
     }
   }
 
+  // Handle manual overtime mode
+  if (settings.overtime.enabled && settings.overtime.mode === 'manual') {
+    // Replace calculated overtime with manual amount
+    overtime125Pay = settings.overtime.manualAmount || 0;
+    overtime150Pay = 0; // Clear the 150% when using manual
+  }
+
   let grossTotal: number;
 
   // If monthly salary - use fixed amount, otherwise calculate from hours
   if (settings.salaryType === 'monthly') {
     grossTotal = settings.monthlySalary + (settings.monthlyAllowances || 0) + travelPay;
+    // Add manual overtime to monthly salary if enabled
+    if (settings.overtime.enabled && settings.overtime.mode === 'manual') {
+      grossTotal += settings.overtime.manualAmount || 0;
+    }
   } else {
     grossTotal = regularPay + overtime125Pay + overtime150Pay + shabbatHolidayPay + travelPay;
   }

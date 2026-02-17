@@ -31,6 +31,8 @@ const defaultSettings: Settings = {
   },
   overtime: {
     enabled: true,
+    mode: 'automatic',
+    manualAmount: 0,
   },
   shabbatPremium: {
     enabled: false,

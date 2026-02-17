@@ -330,7 +330,9 @@ export function ShiftLog() {
                   )}
                   {summary.overtime125Pay > 0 && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">שעות נוספות 125%:</span>
+                      <span className="text-gray-600">
+                        {settings.overtime.mode === 'manual' ? 'שעות נוספות:' : 'שעות נוספות 125%:'}
+                      </span>
                       <span className="font-medium">₪{summary.overtime125Pay.toFixed(2)}</span>
                     </div>
                   )}

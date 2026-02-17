@@ -102,27 +102,58 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [firestore.loading, firestore.settings]);
 
   const startShift = () => {
-    setActiveShift({ startTime: new Date().toISOString() });
+    const now = new Date();
+    const shiftId = crypto.randomUUID();
+    const startTime = now.toTimeString().slice(0, 5);
+
+    // Create shift immediately in Firestore with inProgress flag
+    const shift: Shift = {
+      id: shiftId,
+      date: now.toISOString().split('T')[0],
+      startTime,
+      endTime: '--:--',
+      isHoliday: false,
+      notes: '',
+      inProgress: true,
+    };
+
+    firestore.addShift(shift);
+    setActiveShift({ startTime: now.toISOString() });
+
+    // Store the active shift ID so we can update it later
+    localStorage.setItem('activeShiftId', shiftId);
   };
 
   const endShift = (): Shift | null => {
     if (!activeShift) return null;
 
-    const start = new Date(activeShift.startTime);
     const end = new Date();
+    const endTime = end.toTimeString().slice(0, 5);
+    const activeShiftId = localStorage.getItem('activeShiftId');
 
-    const shift: Shift = {
-      id: crypto.randomUUID(),
-      date: start.toISOString().split('T')[0],
-      startTime: start.toTimeString().slice(0, 5),
-      endTime: end.toTimeString().slice(0, 5),
-      isHoliday: false,
-      notes: '',
-    };
+    if (activeShiftId) {
+      // Update the existing in-progress shift
+      firestore.updateShift(activeShiftId, {
+        endTime,
+        inProgress: false,
+      });
+    } else {
+      // Fallback: create a new shift if no active shift ID found
+      const start = new Date(activeShift.startTime);
+      const shift: Shift = {
+        id: crypto.randomUUID(),
+        date: start.toISOString().split('T')[0],
+        startTime: start.toTimeString().slice(0, 5),
+        endTime,
+        isHoliday: false,
+        notes: '',
+      };
+      firestore.addShift(shift);
+    }
 
-    firestore.addShift(shift);
     setActiveShift(null);
-    return shift;
+    localStorage.removeItem('activeShiftId');
+    return null;
   };
 
   const setCurrentMonth = (year: number, month: number) => {

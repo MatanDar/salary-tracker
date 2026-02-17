@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
@@ -9,12 +9,13 @@ import { exportToCSV } from '../utils/exportHelpers';
 import { emailMonthlyCSV } from '../utils/emailExport';
 import { generatePayslipPDF } from '../utils/pdfExport';
 import { calculateMonthlySummary } from '../utils/salaryCalculations';
-import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Mail, Copy as Duplicate, FileText } from 'lucide-react';
+import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Mail, Copy as Duplicate, FileText, Clock } from 'lucide-react';
 
 export function ShiftLog() {
-  const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth } = useApp();
+  const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth, activeShift } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
+  const [liveElapsed, setLiveElapsed] = useState('');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     startTime: '07:00',
@@ -23,15 +24,36 @@ export function ShiftLog() {
     notes: '',
   });
 
+  // Live timer for active shift
+  useEffect(() => {
+    if (!activeShift) {
+      setLiveElapsed('');
+      return;
+    }
+    const update = () => {
+      const start = new Date(activeShift.startTime);
+      const now = new Date();
+      const diffMs = now.getTime() - start.getTime();
+      const hours = Math.floor(diffMs / 3600000);
+      const mins = Math.floor((diffMs % 3600000) / 60000);
+      setLiveElapsed(`${hours}:${mins.toString().padStart(2, '0')}`);
+    };
+    update();
+    const interval = setInterval(update, 30000); // update every 30 seconds
+    return () => clearInterval(interval);
+  }, [activeShift]);
+
   const { start, end } = getMonthRange(currentMonth.year, currentMonth.month, settings.monthStartDay);
   const monthShifts = shifts
     .filter(shift => isDateInRange(shift.date, start, end))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const totalHours = monthShifts.reduce(
-    (sum, shift) => sum + calculateDuration(shift.date, shift.startTime, shift.endTime),
-    0
-  );
+  const totalHours = monthShifts
+    .filter(s => !s.inProgress)
+    .reduce(
+      (sum, shift) => sum + calculateDuration(shift.date, shift.startTime, shift.endTime),
+      0
+    );
 
   const summary = calculateMonthlySummary(
     shifts,
@@ -150,68 +172,82 @@ export function ShiftLog() {
 
       {/* Table */}
       <div className="px-4 pt-4">
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+        <div className="notebook-table border border-amber-300 rounded-lg overflow-hidden shadow-md">
           {/* Table Header */}
-          <div className="grid grid-cols-5 bg-gray-100 border-b border-gray-300">
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">יום</div>
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">התחלה</div>
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">סיום</div>
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700 border-l border-gray-300">שעות</div>
-            <div className="px-3 py-2 text-sm font-semibold text-gray-700">הערות</div>
+          <div className="grid grid-cols-5 notebook-header border-b-2 border-amber-400">
+            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">יום</div>
+            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">התחלה</div>
+            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">סיום</div>
+            <div className="px-3 py-2 text-sm font-semibold text-amber-900 border-l border-amber-300">שעות</div>
+            <div className="px-3 py-2 text-sm font-semibold text-amber-900">הערות</div>
           </div>
 
           {/* Table Body */}
           {monthShifts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-amber-700 notebook-empty">
               לא נרשמו משמרות החודש
             </div>
           ) : (
             monthShifts.map(shift => {
-              const duration = calculateDuration(shift.date, shift.startTime, shift.endTime);
+              const isActive = shift.inProgress === true;
+              const duration = isActive ? 0 : calculateDuration(shift.date, shift.startTime, shift.endTime);
               const date = new Date(shift.date);
               const dayName = getDayName(shift.date);
 
               return (
                 <div
                   key={shift.id}
-                  className="grid grid-cols-5 border-b border-gray-200 hover:bg-gray-50 cursor-pointer relative"
-                  style={{ borderRightWidth: '4px', borderRightColor: getShiftColor(shift.startTime) }}
-                  onClick={() => handleEdit(shift)}
+                  className={`grid grid-cols-5 notebook-row cursor-pointer relative ${isActive ? 'active-shift-row' : ''}`}
+                  style={{ borderRightWidth: '4px', borderRightColor: isActive ? '#48bb78' : getShiftColor(shift.startTime) }}
+                  onClick={() => !isActive && handleEdit(shift)}
                 >
-                  <div className="px-3 py-3 text-sm border-l border-gray-200">
+                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">
                     {date.getDate()}/{date.getMonth() + 1} {dayName}
                     {shift.isHoliday && (
                       <span className="mr-1 text-xs text-purple-600">⭐</span>
                     )}
                   </div>
-                  <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.startTime}</div>
-                  <div className="px-3 py-3 text-sm border-l border-gray-200">{shift.endTime}</div>
-                  <div className="px-3 py-3 text-sm font-semibold border-l border-gray-200">
-                    {formatDuration(duration)}
+                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">{shift.startTime}</div>
+                  <div className="px-3 py-3 text-sm border-l border-amber-200 text-amber-900">
+                    {isActive ? (
+                      <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
+                        <Clock size={14} />
+                        פעיל
+                      </span>
+                    ) : shift.endTime}
+                  </div>
+                  <div className="px-3 py-3 text-sm font-semibold border-l border-amber-200 text-amber-900">
+                    {isActive ? (
+                      <span className="active-shift-indicator text-green-600">{liveElapsed || '0:00'}</span>
+                    ) : formatDuration(duration)}
                   </div>
                   <div className="px-3 py-3 text-sm flex items-center justify-between gap-2">
-                    <span className="text-gray-600 truncate flex-1">{shift.notes || '-'}</span>
+                    <span className="text-amber-700 truncate flex-1">{shift.notes || '-'}</span>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDuplicate(shift);
-                        }}
-                        className="text-blue-500 hover:text-blue-700 p-1"
-                        title="שכפל משמרת"
-                      >
-                        <Duplicate size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(shift.id);
-                        }}
-                        className="text-red-500 hover:text-red-700 p-1"
-                        title="מחק משמרת"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {!isActive && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicate(shift);
+                            }}
+                            className="text-blue-500 hover:text-blue-700 p-1"
+                            title="שכפל משמרת"
+                          >
+                            <Duplicate size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(shift.id);
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            title="מחק משמרת"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

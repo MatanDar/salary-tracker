@@ -5,6 +5,7 @@ export interface Shift {
   endTime: string; // HH:MM
   isHoliday: boolean;
   notes?: string;
+  inProgress?: boolean; // true when shift is active (clocked in but not out yet)
 }
 
 export interface ActiveShift {

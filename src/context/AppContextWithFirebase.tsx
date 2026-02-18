@@ -12,6 +12,7 @@ interface AppContextType {
   updateSettings: (settings: Partial<Settings>) => void;
   startShift: () => void;
   endShift: () => Shift | null;
+  clearActiveShift: () => void;
   currentMonth: { year: number; month: number };
   setCurrentMonth: (year: number, month: number) => void;
   loading: boolean;
@@ -102,6 +103,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return null;
   };
 
+  // Clears active shift state without updating Firestore (used when closing via modal)
+  const clearActiveShift = () => {
+    setActiveShift(null);
+    localStorage.removeItem('activeShift');
+    localStorage.removeItem('activeShiftId');
+  };
+
   const setCurrentMonth = (year: number, month: number) => {
     setCurrentMonthState({ year, month });
   };
@@ -118,6 +126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         updateSettings: firestore.updateSettings,
         startShift,
         endShift,
+        clearActiveShift,
         currentMonth,
         setCurrentMonth,
         loading: firestore.loading,

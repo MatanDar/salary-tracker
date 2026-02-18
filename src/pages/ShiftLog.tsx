@@ -12,7 +12,7 @@ import { calculateMonthlySummary } from '../utils/salaryCalculations';
 import { Plus, Trash2, ChevronLeft, ChevronRight, X, Download, Mail, Copy as Duplicate, FileText, Clock } from 'lucide-react';
 
 export function ShiftLog() {
-  const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth, activeShift } = useApp();
+  const { shifts, addShift, deleteShift, updateShift, settings, currentMonth, setCurrentMonth, activeShift, clearActiveShift } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingShift, setEditingShift] = useState<Shift | null>(null);
   const [liveElapsed, setLiveElapsed] = useState('');
@@ -73,14 +73,22 @@ export function ShiftLog() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // If editing an in-progress shift and no end time provided, keep it as --:--
+    const hasValidEndTime = formData.endTime && formData.endTime !== '--:--';
+    const isClosingActiveShift = editingShift?.inProgress === true && hasValidEndTime;
+
     const submitData = {
       ...formData,
-      endTime: formData.endTime || (editingShift?.inProgress ? '--:--' : '16:00')
+      endTime: formData.endTime || (editingShift?.inProgress ? '--:--' : '16:00'),
+      // If user provided a valid end time for an active shift, close it
+      inProgress: isClosingActiveShift ? false : (editingShift?.inProgress ?? false),
     };
 
     if (editingShift) {
       updateShift(editingShift.id, submitData);
+      // If we just closed an active shift, clear the active shift state
+      if (isClosingActiveShift) {
+        clearActiveShift();
+      }
       setEditingShift(null);
     } else {
       const newShift: Shift = {

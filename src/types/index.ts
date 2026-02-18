@@ -62,6 +62,7 @@ export interface Settings {
   shiftTemplates: ShiftTemplate[]; // תבניות משמרות
   vacationDaysBalance?: number; // יתרת ימי חופשה
   sickDaysBalance?: number; // יתרת ימי מחלה
+  dailyHoursTarget?: number; // יעד שעות יומי למאזן (ברירת מחדל: 9)
 }
 
 export interface ShiftCalculation {

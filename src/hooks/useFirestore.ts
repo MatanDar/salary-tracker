@@ -43,6 +43,7 @@ const defaultSettings: Settings = {
   ],
   vacationDaysBalance: 0,
   sickDaysBalance: 0,
+  dailyHoursTarget: 9,
 };
 
 // Deep merge loaded settings with defaults so new fields always have values

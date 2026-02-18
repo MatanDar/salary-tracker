@@ -18,84 +18,133 @@ body {
 }
 
 .dark body {
-  background-color: #1a202c;
+  background-color: #0f172a;
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Dark Mode Global Styles */
+/* ================================================
+   DARK MODE
+   ================================================ */
+
+/* Base: text color + color scheme */
 .dark {
   color-scheme: dark;
+  color: #e2e8f0;
 }
 
+/* ── Page / screen backgrounds (very dark) ─────────── */
 .dark .bg-white {
-  background-color: #1a202c !important;
+  background-color: #0f172a !important;
 }
-
 .dark .bg-gray-50 {
-  background-color: #1a202c !important;
+  background-color: #0f172a !important;
 }
 
+/* ── Card / panel surfaces (slightly elevated) ─────── */
+/* Card component always has bg-white + rounded-xl */
+.dark .bg-white.rounded-xl {
+  background-color: #1e293b !important;
+}
+/* Inline bordered boxes (bg-white + rounded-lg) */
+.dark .bg-white.rounded-lg {
+  background-color: #1e293b !important;
+}
+
+/* ── Sub-level surfaces (inside cards) ─────────────── */
 .dark .bg-gray-100 {
-  background-color: #2d3748 !important;
+  background-color: #243049 !important;
 }
-
 .dark .bg-gray-200 {
   background-color: #2d3748 !important;
 }
 
+/* ── Accent/tinted surfaces ─────────────────────────── */
+/* Blue-tinted box (hours balance, gross total highlight) */
+.dark .bg-blue-50 {
+  background-color: #1a2d4a !important;
+}
+/* Green-tinted box (net pay highlight) */
+.dark .bg-green-50 {
+  background-color: #0d2b1e !important;
+}
+
+/* ── Text colors ─────────────────────────────────────── */
+.dark .text-gray-900 {
+  color: #f1f5f9 !important;
+}
 .dark .text-gray-800 {
   color: #e2e8f0 !important;
 }
-
 .dark .text-gray-700 {
   color: #cbd5e0 !important;
 }
-
 .dark .text-gray-600 {
-  color: #a0aec0 !important;
+  color: #94a3b8 !important;
 }
-
 .dark .text-gray-500 {
-  color: #718096 !important;
+  color: #64748b !important;
 }
 
-.dark .text-gray-900 {
-  color: #f7fafc !important;
+/* ── Borders ─────────────────────────────────────────── */
+.dark .border-gray-100 {
+  border-color: #1e293b !important;
 }
-
 .dark .border-gray-200 {
-  border-color: #4a5568 !important;
+  border-color: #2d3748 !important;
 }
-
 .dark .border-gray-300 {
-  border-color: #4a5568 !important;
+  border-color: #374151 !important;
+}
+.dark .border-blue-200 {
+  border-color: #1e40af60 !important;
 }
 
-/* Card styles in dark mode */
-.dark [class*="bg-white"],
-.dark [class*="shadow"] {
-  background-color: #2d3748 !important;
-}
-
-/* Input styles in dark mode */
+/* ── Inputs ──────────────────────────────────────────── */
 .dark input,
 .dark textarea,
 .dark select {
-  background-color: #1a202c !important;
-  border-color: #4a5568 !important;
+  background-color: #0f172a !important;
+  border-color: #374151 !important;
   color: #e2e8f0 !important;
 }
-
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #718096 !important;
+  color: #64748b !important;
 }
 
-/* Button styles remain unchanged (keep blue colors) */
-/* Tables in dark mode */
+/* ── Bottom Navigation ───────────────────────────────── */
+.dark .fixed.bottom-0.bg-white {
+  background-color: #1e293b !important;
+  border-top-color: #374151 !important;
+}
+/* Text inside BottomNav */
+.dark .fixed.bottom-0 .text-gray-500 {
+  color: #64748b !important;
+}
+.dark .fixed.bottom-0 .hover\:text-gray-700:hover {
+  color: #94a3b8 !important;
+}
+
+/* ── Generic dark tables ─────────────────────────────── */
+.dark table {
+  border-color: #374151 !important;
+}
+.dark th {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #374151 !important;
+}
+.dark td {
+  border-color: #374151 !important;
+  color: #cbd5e0 !important;
+}
+
+/* ================================================
+   NOTEBOOK TABLE  (stays warm/cream in dark mode)
+   ================================================ */
 /* Notebook-style table */
 .notebook-table {
   background-color: #fef9e7;
@@ -158,42 +207,34 @@ body {
   border-right-color: #48bb78 !important;
 }
 
+/* Notebook table: keep the warm cream/yellow look even in dark mode */
 .dark .notebook-table {
-  background-color: #2d3748 !important;
+  background-color: #fef9e7 !important;
   background-image:
     repeating-linear-gradient(
       transparent,
       transparent 47px,
-      #4a5568 47px,
-      #4a5568 48px
+      #e8d5a3 47px,
+      #e8d5a3 48px
     ) !important;
-  border-left-color: #718096 !important;
+  border-left-color: #d4a59a !important;
 }
 
 .dark .notebook-table::before {
-  background-color: #718096 !important;
+  background-color: #d4a59a !important;
+  opacity: 0.5 !important;
 }
 
 .dark .notebook-header {
-  background-color: #374151 !important;
-  border-bottom-color: #4a5568 !important;
+  background-color: #f5e6b8 !important;
+  border-bottom-color: #d4b96a !important;
+}
+
+.dark .notebook-row {
+  background-color: transparent !important;
+  border-bottom-color: #e8d5a3 !important;
 }
 
 .dark .notebook-row:hover {
-  background-color: rgba(74, 85, 104, 0.4) !important;
-}
-
-.dark table {
-  border-color: #4a5568 !important;
-}
-
-.dark th {
-  background-color: #2d3748 !important;
-  color: #e2e8f0 !important;
-  border-color: #4a5568 !important;
-}
-
-.dark td {
-  border-color: #4a5568 !important;
-  color: #cbd5e0 !important;
+  background-color: rgba(245, 230, 184, 0.4) !important;
 }

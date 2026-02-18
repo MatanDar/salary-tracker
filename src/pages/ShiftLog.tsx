@@ -65,8 +65,8 @@ export function ShiftLog() {
     0
   );
 
-  // Hours balance: actual hours vs required 9h per shift
-  const REQUIRED_HOURS_PER_SHIFT = 9;
+  // Hours balance: actual hours vs required target hours per shift (from settings, default 9)
+  const REQUIRED_HOURS_PER_SHIFT = settings.dailyHoursTarget ?? 9;
   const totalRequiredHours = completedRegularShifts.length * REQUIRED_HOURS_PER_SHIFT;
   const hoursBalance = totalHours - totalRequiredHours; // positive = surplus, negative = deficit
 

@@ -259,6 +259,25 @@ export function Settings() {
         </div>
       </Card>
 
+      {/* Daily Hours Target */}
+      <Card className="mb-4">
+        <h2 className="text-lg font-semibold mb-3">יעד שעות יומי</h2>
+        <Input
+          type="number"
+          step="0.5"
+          min="1"
+          max="24"
+          value={settings.dailyHoursTarget ?? 9}
+          onChange={(e) =>
+            updateSettings({ dailyHoursTarget: parseFloat(e.target.value) || 9 })
+          }
+          placeholder="9"
+        />
+        <p className="text-sm text-gray-500 mt-2">
+          מספר השעות היומי הנדרש לצורך חישוב מאזן השעות ביומן המשמרות (שעות)
+        </p>
+      </Card>
+
       {/* Shabbat Premium */}
       <Card className="mb-4">
         <h2 className="text-lg font-semibold mb-3">תוספת שבת/חג</h2>

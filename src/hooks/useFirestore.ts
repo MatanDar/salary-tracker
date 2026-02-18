@@ -3,8 +3,88 @@ import { collection, doc, setDoc, deleteDoc, onSnapshot, query } from 'firebase/
 import { db } from '../firebase/config';
 import { Shift, Settings } from '../types';
 
+// Default settings - single source of truth for all defaults
+const defaultSettings: Settings = {
+  salaryType: 'hourly',
+  hourlyRate: 40,
+  monthlySalary: 10000,
+  monthlyAllowances: 0,
+  travelPay: {
+    enabled: false,
+    amount: 22,
+    type: 'perDay',
+  },
+  overtime: {
+    enabled: true,
+    mode: 'automatic',
+    manualAmount: 0,
+  },
+  shabbatPremium: {
+    enabled: false,
+  },
+  monthStartDay: 1,
+  darkMode: false,
+  calculateDeductions: false,
+  deductions: {
+    socialSecurity: 7,
+    incomeTax: 10,
+    pension: 6,
+    trainingFund: 2.5,
+  },
+  employerContributions: {
+    pension: 6.5,
+    severance: 6,
+    trainingFund: 5,
+  },
+  shiftTemplates: [
+    { id: 'template-1', name: 'משמרת בוקר', startTime: '07:00', endTime: '16:00', color: '#3b82f6' },
+    { id: 'template-2', name: 'משמרת ערב',  startTime: '16:00', endTime: '00:00', color: '#f59e0b' },
+    { id: 'template-3', name: 'משמרת לילה', startTime: '22:00', endTime: '07:00', color: '#8b5cf6' },
+  ],
+  vacationDaysBalance: 0,
+  sickDaysBalance: 0,
+};
+
+// Deep merge loaded settings with defaults so new fields always have values
+function mergeWithDefaults(loaded: Partial<Settings>): Settings {
+  return {
+    ...defaultSettings,
+    ...loaded,
+    travelPay: {
+      ...defaultSettings.travelPay,
+      ...(loaded.travelPay || {}),
+    },
+    overtime: {
+      ...defaultSettings.overtime,
+      ...(loaded.overtime || {}),
+    },
+    shabbatPremium: {
+      ...defaultSettings.shabbatPremium,
+      ...(loaded.shabbatPremium || {}),
+    },
+    deductions: {
+      ...defaultSettings.deductions,
+      ...(loaded.deductions || {}),
+    },
+    employerContributions: {
+      ...defaultSettings.employerContributions,
+      ...(loaded.employerContributions || {}),
+    },
+    shiftTemplates: loaded.shiftTemplates?.length
+      ? loaded.shiftTemplates
+      : defaultSettings.shiftTemplates,
+  };
+}
+
 // Generate a unique user ID (stored in localStorage)
 function getUserId(): string {
+  // Check URL for recovery param
+  const params = new URLSearchParams(window.location.search);
+  const urlUserId = params.get('userId');
+  if (urlUserId) {
+    localStorage.setItem('userId', urlUserId);
+    return urlUserId;
+  }
   let userId = localStorage.getItem('userId');
   if (!userId) {
     userId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -28,8 +108,8 @@ export function useFirestore() {
       q,
       (snapshot) => {
         const shiftsData: Shift[] = [];
-        snapshot.forEach((doc) => {
-          shiftsData.push({ ...doc.data() } as Shift);
+        snapshot.forEach((d) => {
+          shiftsData.push({ ...d.data() } as Shift);
         });
         setShifts(shiftsData);
         setLoading(false);
@@ -49,20 +129,24 @@ export function useFirestore() {
 
     const unsubscribe = onSnapshot(
       settingsRef,
-      (doc) => {
-        if (doc.exists()) {
-          setSettings(doc.data() as Settings);
+      (d) => {
+        if (d.exists()) {
+          // Always merge with defaults so new fields never go missing
+          setSettings(mergeWithDefaults(d.data() as Partial<Settings>));
+        } else {
+          // No settings doc yet - use defaults
+          setSettings(defaultSettings);
         }
       },
       (error) => {
         console.error('Error fetching settings:', error);
+        setSettings(defaultSettings);
       }
     );
 
     return () => unsubscribe();
   }, [userId]);
 
-  // Add shift
   const addShift = async (shift: Shift) => {
     try {
       const shiftRef = doc(db, `users/${userId}/shifts/${shift.id}`);
@@ -73,7 +157,6 @@ export function useFirestore() {
     }
   };
 
-  // Update shift
   const updateShift = async (id: string, updatedFields: Partial<Shift>) => {
     try {
       const shiftRef = doc(db, `users/${userId}/shifts/${id}`);
@@ -87,7 +170,6 @@ export function useFirestore() {
     }
   };
 
-  // Delete shift
   const deleteShift = async (id: string) => {
     try {
       const shiftRef = doc(db, `users/${userId}/shifts/${id}`);
@@ -98,11 +180,33 @@ export function useFirestore() {
     }
   };
 
-  // Update settings
+  // Update settings - always merge with defaults + current to prevent field loss
   const updateSettings = async (updatedSettings: Partial<Settings>) => {
     try {
       const settingsRef = doc(db, `users/${userId}/settings/main`);
-      const newSettings = { ...settings, ...updatedSettings };
+      const current = settings || defaultSettings;
+
+      // Merge nested objects carefully
+      const newSettings: Settings = {
+        ...current,
+        ...updatedSettings,
+        travelPay: updatedSettings.travelPay
+          ? { ...current.travelPay, ...updatedSettings.travelPay }
+          : current.travelPay,
+        overtime: updatedSettings.overtime
+          ? { ...current.overtime, ...updatedSettings.overtime }
+          : current.overtime,
+        shabbatPremium: updatedSettings.shabbatPremium
+          ? { ...current.shabbatPremium, ...updatedSettings.shabbatPremium }
+          : current.shabbatPremium,
+        deductions: updatedSettings.deductions
+          ? { ...current.deductions, ...updatedSettings.deductions }
+          : current.deductions,
+        employerContributions: updatedSettings.employerContributions
+          ? { ...current.employerContributions, ...updatedSettings.employerContributions }
+          : current.employerContributions,
+      };
+
       await setDoc(settingsRef, newSettings);
     } catch (error) {
       console.error('Error updating settings:', error);
@@ -120,3 +224,5 @@ export function useFirestore() {
     updateSettings,
   };
 }
+
+export { defaultSettings };

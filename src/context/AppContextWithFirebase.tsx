@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Shift, Settings, ActiveShift } from '../types';
-import { useFirestore } from '../hooks/useFirestore';
+import { useFirestore, defaultSettings } from '../hooks/useFirestore';
 
 interface AppContextType {
   shifts: Shift[];
@@ -19,65 +19,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const defaultSettings: Settings = {
-  salaryType: 'hourly',
-  hourlyRate: 40,
-  monthlySalary: 10000,
-  monthlyAllowances: 0,
-  travelPay: {
-    enabled: false,
-    amount: 22,
-    type: 'perDay',
-  },
-  overtime: {
-    enabled: true,
-    mode: 'automatic',
-    manualAmount: 0,
-  },
-  shabbatPremium: {
-    enabled: false,
-  },
-  monthStartDay: 1,
-  darkMode: false,
-  calculateDeductions: false,
-  deductions: {
-    socialSecurity: 7,
-    incomeTax: 10,
-    pension: 6,
-    trainingFund: 2.5,
-  },
-  employerContributions: {
-    pension: 6.5,
-    severance: 6,
-    trainingFund: 5,
-  },
-  shiftTemplates: [
-    {
-      id: 'template-1',
-      name: 'משמרת בוקר',
-      startTime: '07:00',
-      endTime: '16:00',
-      color: '#3b82f6' // blue
-    },
-    {
-      id: 'template-2',
-      name: 'משמרת ערב',
-      startTime: '16:00',
-      endTime: '00:00',
-      color: '#f59e0b' // amber
-    },
-    {
-      id: 'template-3',
-      name: 'משמרת לילה',
-      startTime: '22:00',
-      endTime: '07:00',
-      color: '#8b5cf6' // purple
-    }
-  ],
-  vacationDaysBalance: 0,
-  sickDaysBalance: 0,
-};
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
   const [activeShift, setActiveShift] = useState<ActiveShift | null>(null);
@@ -90,16 +31,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedActiveShift = localStorage.getItem('activeShift');
     if (savedActiveShift) {
-      setActiveShift(JSON.parse(savedActiveShift));
+      try {
+        setActiveShift(JSON.parse(savedActiveShift));
+      } catch {
+        localStorage.removeItem('activeShift');
+      }
     }
   }, []);
 
   // Save active shift to localStorage
   useEffect(() => {
-    localStorage.setItem('activeShift', JSON.stringify(activeShift));
+    if (activeShift) {
+      localStorage.setItem('activeShift', JSON.stringify(activeShift));
+    } else {
+      localStorage.removeItem('activeShift');
+    }
   }, [activeShift]);
 
-  // Initialize settings if not exists
+  // Initialize settings in Firestore if not exists
   useEffect(() => {
     if (!firestore.loading && !firestore.settings) {
       firestore.updateSettings(defaultSettings);
@@ -111,7 +60,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const shiftId = crypto.randomUUID();
     const startTime = now.toTimeString().slice(0, 5);
 
-    // Create shift immediately in Firestore with inProgress flag
     const shift: Shift = {
       id: shiftId,
       date: now.toISOString().split('T')[0],
@@ -124,8 +72,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     firestore.addShift(shift);
     setActiveShift({ startTime: now.toISOString() });
-
-    // Store the active shift ID so we can update it later
     localStorage.setItem('activeShiftId', shiftId);
   };
 
@@ -137,13 +83,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const activeShiftId = localStorage.getItem('activeShiftId');
 
     if (activeShiftId) {
-      // Update the existing in-progress shift
-      firestore.updateShift(activeShiftId, {
-        endTime,
-        inProgress: false,
-      });
+      firestore.updateShift(activeShiftId, { endTime, inProgress: false });
     } else {
-      // Fallback: create a new shift if no active shift ID found
       const start = new Date(activeShift.startTime);
       const shift: Shift = {
         id: crypto.randomUUID(),

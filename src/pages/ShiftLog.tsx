@@ -56,12 +56,19 @@ export function ShiftLog() {
     .filter(shift => isDateInRange(shift.date, start, end))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const totalHours = monthShifts
-    .filter(s => !s.inProgress)
-    .reduce(
-      (sum, shift) => sum + calculateDuration(shift.date, shift.startTime, shift.endTime),
-      0
-    );
+  const completedRegularShifts = monthShifts.filter(
+    s => !s.inProgress && s.shiftType !== 'vacation' && s.shiftType !== 'sick'
+  );
+
+  const totalHours = completedRegularShifts.reduce(
+    (sum, shift) => sum + calculateDuration(shift.date, shift.startTime, shift.endTime),
+    0
+  );
+
+  // Hours balance: actual hours vs required 9h per shift
+  const REQUIRED_HOURS_PER_SHIFT = 9;
+  const totalRequiredHours = completedRegularShifts.length * REQUIRED_HOURS_PER_SHIFT;
+  const hoursBalance = totalHours - totalRequiredHours; // positive = surplus, negative = deficit
 
   const summary = calculateMonthlySummary(
     shifts,
@@ -307,11 +314,22 @@ export function ShiftLog() {
         </div>
 
         {/* Total at bottom */}
-        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-700">סה"כ שעות החודש:</span>
             <span className="text-lg font-bold text-blue-600">{formatDuration(totalHours)}</span>
           </div>
+          {completedRegularShifts.length > 0 && (
+            <div className="flex justify-between items-center border-t border-blue-200 pt-2">
+              <span className="text-sm text-gray-600">
+                מאזן שעות ({completedRegularShifts.length} משמרות × {REQUIRED_HOURS_PER_SHIFT}ש׳):
+              </span>
+              <span className={`text-sm font-bold ${hoursBalance >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                {hoursBalance >= 0 ? '+' : ''}{formatDuration(Math.abs(hoursBalance))}
+                {hoursBalance >= 0 ? ' ✅' : ' ⚠️'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Monthly Summary */}

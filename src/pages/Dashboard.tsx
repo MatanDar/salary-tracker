@@ -20,8 +20,12 @@ export function Dashboard() {
 
   const handleClockToggle = () => {
     if (isActive) {
+      // Double buzz on clock-out: "פה עצרנו"
+      navigator.vibrate?.([80, 60, 80]);
       endShift();
     } else {
+      // Single buzz on clock-in: "התחלנו"
+      navigator.vibrate?.(100);
       startShift();
     }
   };

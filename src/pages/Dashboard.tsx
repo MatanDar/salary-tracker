@@ -8,7 +8,7 @@ import { Play, Square, ChevronLeft, ChevronRight, FileText } from 'lucide-react'
 
 export function Dashboard() {
   const { shifts, settings, startShift, endShift, currentMonth, setCurrentMonth } = useApp();
-  const { formattedTime, isActive } = useTimer();
+  const { formattedTime, currentTime, shiftStartTime, isActive } = useTimer();
   const navigate = useNavigate();
 
   const summary = calculateMonthlySummary(
@@ -83,8 +83,18 @@ export function Dashboard() {
               {isActive ? <Square size={28} /> : <Play size={28} />}
               <span className="mt-2 text-base">{isActive ? 'יציאה' : 'כניסה'}</span>
               <span className="text-xs">{isActive ? 'ממשמרת' : 'למשמרת'}</span>
+              {/* Live clock always visible */}
+              <span className="text-sm mt-2 font-mono opacity-90">{currentTime}</span>
+              {/* Elapsed time + start time when shift is active */}
               {isActive && (
-                <span className="text-sm mt-2 font-mono">{formattedTime}</span>
+                <span className="text-xs mt-1 font-mono opacity-75">
+                  משמרת: {formattedTime}
+                </span>
+              )}
+              {isActive && shiftStartTime && (
+                <span className="text-xs opacity-60">
+                  התחלה: {shiftStartTime}
+                </span>
               )}
             </div>
           </button>

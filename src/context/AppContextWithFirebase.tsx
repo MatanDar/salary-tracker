@@ -22,23 +22,19 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
-  const [activeShift, setActiveShift] = useState<ActiveShift | null>(null);
+  // Lazy init from localStorage — timer never flashes 0:00:00 on page reload
+  const [activeShift, setActiveShift] = useState<ActiveShift | null>(() => {
+    const saved = localStorage.getItem('activeShift');
+    if (saved) {
+      try { return JSON.parse(saved) as ActiveShift; }
+      catch { localStorage.removeItem('activeShift'); }
+    }
+    return null;
+  });
   const [currentMonth, setCurrentMonthState] = useState<{ year: number; month: number }>(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
   });
-
-  // Load active shift from localStorage
-  useEffect(() => {
-    const savedActiveShift = localStorage.getItem('activeShift');
-    if (savedActiveShift) {
-      try {
-        setActiveShift(JSON.parse(savedActiveShift));
-      } catch {
-        localStorage.removeItem('activeShift');
-      }
-    }
-  }, []);
 
   // Save active shift to localStorage
   useEffect(() => {

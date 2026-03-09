@@ -242,19 +242,13 @@ export function ShiftLog() {
                   style={{ borderRightWidth: '4px', borderRightColor: borderColor }}
                   onClick={() => handleEdit(shift)}
                 >
-                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
-                    <span>
-                      {date.getDate()}/{date.getMonth() + 1} {dayName}
-                      {shift.isHoliday && (
-                        <span className="mr-1 text-xs text-purple-600">⭐</span>
-                      )}
-                      {isVacation && (
-                        <span className="mr-1 text-xs">🏖️</span>
-                      )}
-                      {isSick && (
-                        <span className="mr-1 text-xs">🤒</span>
-                      )}
+                  {/* Col 1: date on line 1, day-name on line 2 — always fits */}
+                  <div className="px-2 border-l border-amber-200 text-amber-900 flex flex-col justify-center overflow-hidden h-full">
+                    <span className="text-xs font-semibold leading-tight whitespace-nowrap">
+                      {date.getDate()}/{date.getMonth() + 1}
+                      {shift.isHoliday && <span className="text-purple-600"> ⭐</span>}
                     </span>
+                    <span className="text-xs text-amber-700 leading-tight">{dayName}</span>
                   </div>
                   {/* vacation/sick: span cols 2+3+4 so text never wraps */}
                   {(isVacation || isSick) ? (

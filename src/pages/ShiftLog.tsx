@@ -256,28 +256,35 @@ export function ShiftLog() {
                       )}
                     </span>
                   </div>
-                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
-                    {isVacation || isSick ? '-' : shift.startTime}
-                  </div>
-                  <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
-                    {isVacation || isSick ? '-' : (
-                      isActive ? (
-                        <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
-                          <Clock size={14} />
-                          פעיל
-                        </span>
-                      ) : shift.endTime
-                    )}
-                  </div>
-                  <div className="px-3 py-2 text-sm font-semibold border-l border-amber-200 text-amber-900 flex items-center">
-                    {isVacation ? (
-                      <span className="text-amber-600">יום חופשה</span>
-                    ) : isSick ? (
-                      <span className="text-red-600">יום מחלה</span>
-                    ) : isActive ? (
-                      <span className="active-shift-indicator text-green-600">{liveElapsed || '0:00'}</span>
-                    ) : formatDuration(duration)}
-                  </div>
+                  {/* vacation/sick: span cols 2+3+4 so text never wraps */}
+                  {(isVacation || isSick) ? (
+                    <div className="col-span-3 px-3 py-2 text-sm font-semibold border-l border-amber-200 flex items-center">
+                      {isVacation
+                        ? <span className="text-amber-600 whitespace-nowrap">🏖️ יום חופשה</span>
+                        : <span className="text-red-600 whitespace-nowrap">🤒 יום מחלה</span>
+                      }
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
+                        {shift.startTime}
+                      </div>
+                      <div className="px-3 py-2 text-sm border-l border-amber-200 text-amber-900 flex items-center">
+                        {isActive ? (
+                          <span className="active-shift-indicator text-green-600 font-medium flex items-center gap-1">
+                            <Clock size={14} />
+                            פעיל
+                          </span>
+                        ) : shift.endTime}
+                      </div>
+                      <div className="px-3 py-2 text-sm font-semibold border-l border-amber-200 text-amber-900 flex items-center">
+                        {isActive
+                          ? <span className="active-shift-indicator text-green-600">{liveElapsed || '0:00'}</span>
+                          : formatDuration(duration)
+                        }
+                      </div>
+                    </>
+                  )}
                   <div className="px-3 py-2 text-sm flex items-center justify-between gap-2">
                     <span className="text-amber-700 truncate flex-1">{shift.notes || '-'}</span>
                     <div className="flex gap-1 flex-shrink-0">
